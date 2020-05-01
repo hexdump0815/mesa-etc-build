@@ -13,7 +13,7 @@ git clone git://anongit.freedesktop.org/mesa/mesa
 # we need a newer meson than what comes with ubuntu 18.04 to build mesa
 git clone https://github.com/mesonbuild/meson.git
 cd mesa
-git checkout mesa-20.0.5
+git checkout mesa-20.0.6
 mkdir build
 cd build
 # python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=lima,panfrost,nouveau,tegra,vc4,v3d,freedreno,virgl,kmsro,swrast -Dlibunwind=false -Dplatforms=drm,x11,wayland,surfaceless -Dglx=dri -Degl=true -Ddri3=true -Dglvnd=false -Dosmesa=gallium -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa-armv7l
@@ -54,6 +54,16 @@ LIBGL_DRIVERS_PATH - colon-separated list of paths to search for DRI drivers
 # maybe create /etc/ld.so.conf.d/aaa-mesa.conf to find out own mesa libs first
 /opt/libdrm-xyz/lib/abc
 /opt/mesa-xyz/lib/abc
+
+# useful mesa env variables:
+# use sw rendering even if hw rendering would be possible
+export LIBGL_ALWAYS_SOFTWARE=1
+# limit number of threads (i.e. cpu cores used) for sw rendering
+export LP_NUM_THREADS=1
+# from: https://redmine.replicant.us/projects/replicant/wiki/GraphicsResearch
+# performance improvements for mesa llvmpipe
+export LP_PERF=no_mipmap,no_linear,no_mip_linear,no_tex,no_blend,no_depth,no_alphatest
+export MESA_NO_DITHER=1
 
 # testing
 - /opt/xserver/bin/Xorg -noreset &
