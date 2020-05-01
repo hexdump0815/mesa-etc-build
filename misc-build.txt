@@ -1,0 +1,60 @@
+# get latest xorg server (just as an example) - better build one yourself - see below
+apt install --install-recommends xserver-xorg-hwe-18.04
+apt-get remove linux-image-5.0.0-37-generic
+# undo the above:
+apt-get remove devio flash-kernel libunwind8 linux-generic-hwe-18.04 linux-headers-5.0.0-23 linux-headers-5.0.0-23-generic linux-headers-generic-hwe-18.04 linux-image-5.0.0-23-generic linux-image-generic-hwe-18.04 linux-modules-5.0.0-23-generic mtd-utils xserver-xorg-core-hwe-18.04 xserver-xorg-hwe-18.04 xserver-xorg-input-all-hwe-18.04 xserver-xorg-input-libinput-hwe-18.04 xserver-xorg-legacy-hwe-18.04 xserver-xorg-video-all-hwe-18.04 xserver-xorg-video-amdgpu-hwe-18.04 xserver-xorg-video-ati-hwe-18.04 xserver-xorg-video-fbdev-hwe-18.04 xserver-xorg-video-nouveau-hwe-18.04 xserver-xorg-video-radeon-hwe-18.04 xserver-xorg-video-vesa-hwe-18.04
+apt-get install xorg-dev xserver-xorg xserver-xorg-core xserver-xorg-dev xserver-xorg-input-all xserver-xorg-input-libinput xserver-xorg-input-synaptics xserver-xorg-input-void xserver-xorg-input-wacom xserver-xorg-legacy xserver-xorg-video-all xserver-xorg-video-amdgpu xserver-xorg-video-ati xserver-xorg-video-dummy xserver-xorg-video-fbdev xserver-xorg-video-nouveau xserver-xorg-video-radeon xserver-xorg-video-vesa
+apt-get install xpra # if it was installed before
+apt-get remove xorg-video-ati xserver-xorg-video-radeon xserver-xorg-video-vesa # not needed on arm
+
+# kmscude for offline render test - see: https://gitlab.freedesktop.org/lima/web
+git clone https://github.com/yuq/kmscube
+apt-get install autoconf automake libgbm-dev libegl1-mesa-dev libgles2-mesa-dev libpng-dev
+./autogen.sh 
+make
+export LD_LIBRARY_PATH=/opt/mesa-xyz/lib/abc
+./kmscube -d -D /dev/dri/renderD129
+./kmscube -d -D /dev/dri/renderD129 -M rgba
+
+# build xorg server
+apt-get install libpixman-1-dev libxkbfile-dev libxfont-dev libgl1-mesa-dev libepoxy-dev libpciaccess-dev libudev-dev
+git clone https://gitlab.freedesktop.org/xorg/xserver
+# we need a newer meson than what comes with ubuntu 18.04 to build the xorg server
+git clone https://github.com/mesonbuild/meson.git
+cd xserver
+mkdir build
+cd build
+# maybe add -Dxkb_bin_dir=/usr/bin too?
+# python3 ../../meson/meson.py .. . --prefix=/opt/xserver-armv7l -Dglamor=true
+# python3 ../../meson/meson.py .. . --prefix=/opt/xserver-aarch64 -Dglamor=true
+# build
+ninja [-j4]
+# install
+ninja install
+cd /opt/xserver-xyz
+ln -s /etc etc
+ln -s /var var
+# those two can maybe be avoided using -Dxkb_bin_dir=/usr/bin above
+cd bin
+ln -s /usr/bin/xkbcomp xkbcomp
+
+# build libdrm
+git clone https://gitlab.freedesktop.org/mesa/drm
+# we need a newer meson than what comes with ubuntu 18.04 to build libdrm
+git clone https://github.com/mesonbuild/meson.git
+cd drm/
+mkdir build
+cd build
+# python3 ../../meson/meson.py .. . -Dnouveau=true -Dfreedreno=true -Dtegra=true -Detnaviv=true -Dexynos=true -Dintel=false -Dradeon=false -Damdgpu=false -Dvmwgfx=false -Domap=false -Dlibkms=false --prefix=/opt/libdrm-armv7l
+# python3 ../../meson/meson.py .. . -Dnouveau=true -Dfreedreno=true -Dtegra=true -Detnaviv=true -Dexynos=true -Dintel=false -Dradeon=false -Damdgpu=false -Dvmwgfx=false -Domap=false -Dlibkms=false --prefix=/opt/libdrm-aarch64
+ninja -j4
+ninja install
+
+# build libdrm-rockchip
+git clone https://github.com/rockchip-linux/libdrm-rockchip.git
+cd libdrm-rockchip
+autoreconf -fvi
+# ./configure --enable-rockchip-experimental-api --disable-libkms --disable-intel --disable-radeon --disable-amdgpu --disable-nouveau --disable-vmwgfx --disable-freedreno --disable-vc4 --prefix=/opt/libdrm-rockchip-armv7l
+# ./configure --enable-rockchip-experimental-api --disable-libkms --disable-intel --disable-radeon --disable-amdgpu --disable-nouveau --disable-vmwgfx --disable-freedreno --disable-vc4 --prefix=/opt/libdrm-rockchip-aarch64
+make
+make install

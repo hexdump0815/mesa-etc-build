@@ -1,0 +1,69 @@
+# VERY IMPORTANT: some of the mesa drivers need libllvm package to be installed - otherwise one gets
+#                 the hard to debug glamor error in the xorg log "couldn't get display device" or
+#                 "MESA-LOADER: failed to open vc4" while the vc4_dri.so is where it is being searched
+#                 for - ldd on the vc4_dri.so showed then, that it depended on libLLVM-6.0.so.1 which
+#                 was not installed ... other things to keep in mind: access to /dev/dri/* should
+#                 work for gpu users ("video" group for users in ubuntu) and often the xserver needs
+#                 to run with root privs ("xserver-xorg-legacy" and /etc/X11/Xwrapper.config in
+#                 ubuntu - put "allowed_users=anybody" and "needs_root_rights=yes" if needed
+
+# required pacakges to build (not guaranteed to be complete)
+apt-get -y install x11proto-gl-dev libdrm-dev libx11-dev libxext-dev libxdamage-dev libxfixes-dev libx11-xcb-dev libxcb-glx0-dev libxxf86vm-dev libxcb-dri2-0-dev libxcb-xfixes0-dev libxcb-dri3-dev libxcb-present-dev libxcb-sync-dev libxshmfence-dev libxrandr-dev llvm-dev meson python3-mako python3-setuptools libwayland-dev wayland-protocols libwayland-egl-backend-dev pkg-config build-essential zlib1g-dev git bison flex
+git clone git://anongit.freedesktop.org/mesa/mesa
+# we need a newer meson than what comes with ubuntu 18.04 to build mesa
+git clone https://github.com/mesonbuild/meson.git
+cd mesa
+git checkout mesa-20.0.5
+mkdir build
+cd build
+# python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=lima,panfrost,nouveau,tegra,vc4,v3d,freedreno,virgl,kmsro,swrast -Dlibunwind=false -Dplatforms=drm,x11,wayland,surfaceless -Dglx=dri -Degl=true -Ddri3=true -Dglvnd=false -Dosmesa=gallium -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa-armv7l
+# python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=lima,panfrost,nouveau,tegra,vc4,v3d,freedreno,virgl,kmsro,swrast -Dlibunwind=false -Dplatforms=drm,x11,wayland,surfaceless -Dglx=dri -Degl=true -Ddri3=true -Dglvnd=false -Dosmesa=gallium -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa-aarch64
+ninja
+ninja install
+
+# for panfrost and lima kernel config is required and a proper gpu node in the dtb
+CONFIG_PANFROST=m
+CONFIG_LIMA=m
+
+# in panfrost some devices still need to be whitelisted in panfrost_create_screen
+# https://gitlab.freedesktop.org/mesa/mesa/-/blob/master/src/gallium/drivers/panfrost/pan_screen.c
+
+# xorg.conf for panfrost and lima (from: https://gitlab.freedesktop.org/lima/web/blob/master/README.md)
+Section "ServerFlags"
+        Option  "AutoAddGPU" "off"
+        Option "Debug" "dmabuf_capable"
+EndSection
+
+Section "OutputClass"
+        Identifier "Lima"
+        MatchDriver "<display DRM driver>"
+        Driver "modesetting"
+        Option "PrimaryGPU" "true"
+EndSection
+
+# <display DRM driver>:
+- Amlogic: meson
+- Allwinner: sun4i-drm
+- RockChip: rockchip
+- Exynos: exynos
+
+# maybe interesting to point to the dri dir in /opt/mesa-xyz/lib/abc/dri
+from: https://www.mesa3d.org/envvars.html
+LIBGL_DRIVERS_PATH - colon-separated list of paths to search for DRI drivers
+
+# maybe create /etc/ld.so.conf.d/aaa-mesa.conf to find out own mesa libs first
+/opt/libdrm-xyz/lib/abc
+/opt/mesa-xyz/lib/abc
+
+# testing
+- /opt/xserver/bin/Xorg -noreset &
+- same user: export DISPLAY=:0
+- export LIBGL_DRIVERS_PATH=/opt/mesa-xyz/lib/abc/dri
+- then start gl apps: glxgears, glmark2, ...
+
+# not sure if still relevant - old odroid u3 lima notes:
+use convert-int-to-float.patch - see: https://gitlab.freedesktop.org/lima/mesa/issues/56#note_98690
+might be relevant too: https://gitlab.freedesktop.org/lima/mesa/issues/114
+and: https://gitlab.freedesktop.org/mesa/mesa/merge_requests/1904
+and: https://gitlab.freedesktop.org/lima/mesa/issues/82
+apt-get install xserver-xorg-hwe-18.04 might be required (not sure if this is stil lthe case?)

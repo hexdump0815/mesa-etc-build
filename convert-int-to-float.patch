@@ -1,0 +1,61 @@
+diff --git a/src/compiler/glsl/glsl_to_nir.cpp b/src/compiler/glsl/glsl_to_nir.cpp
+index 3238c65cd9c..d9948f28570 100644
+--- a/src/compiler/glsl/glsl_to_nir.cpp
++++ b/src/compiler/glsl/glsl_to_nir.cpp
+@@ -294,6 +294,8 @@ nir_visitor::constant_copy(ir_constant *ir, void *mem_ctx)
+    if (ir == NULL)
+       return NULL;
+ 
++   bool supports_ints = false;
++
+    nir_constant *ret = rzalloc(mem_ctx, nir_constant);
+ 
+    const unsigned rows = ir->type->vector_elements;
+@@ -307,7 +309,10 @@ nir_visitor::constant_copy(ir_constant *ir, void *mem_ctx)
+       assert(cols == 1);
+ 
+       for (unsigned r = 0; r < rows; r++)
+-         ret->values[r].u32 = ir->value.u[r];
++         if (supports_ints)
++            ret->values[0].u32 = ir->value.u[r];
++         else
++            ret->values[0].f32 = ir->value.u[r];
+ 
+       break;
+ 
+@@ -316,7 +321,10 @@ nir_visitor::constant_copy(ir_constant *ir, void *mem_ctx)
+       assert(cols == 1);
+ 
+       for (unsigned r = 0; r < rows; r++)
+-         ret->values[r].i32 = ir->value.i[r];
++         if (supports_ints)
++            ret->values[0].i32 = ir->value.i[r];
++         else
++            ret->values[0].f32 = ir->value.i[r];
+ 
+       break;
+ 
+@@ -367,7 +375,10 @@ nir_visitor::constant_copy(ir_constant *ir, void *mem_ctx)
+       assert(cols == 1);
+ 
+       for (unsigned r = 0; r < rows; r++)
+-         ret->values[r].u64 = ir->value.u64[r];
++         if (supports_ints)
++            ret->values[0].u64 = ir->value.u64[r];
++         else
++            ret->values[0].f64 = ir->value.u64[r];
+       break;
+ 
+    case GLSL_TYPE_INT64:
+@@ -375,7 +386,10 @@ nir_visitor::constant_copy(ir_constant *ir, void *mem_ctx)
+       assert(cols == 1);
+ 
+       for (unsigned r = 0; r < rows; r++)
+-         ret->values[r].i64 = ir->value.i64[r];
++         if (supports_ints)
++            ret->values[0].i64 = ir->value.i64[r];
++         else
++            ret->values[0].f64 = ir->value.i64[r];
+       break;
+ 
+    case GLSL_TYPE_BOOL:
