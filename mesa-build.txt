@@ -13,11 +13,11 @@ git clone git://anongit.freedesktop.org/mesa/mesa
 # we need a newer meson than what comes with ubuntu 18.04 to build mesa
 git clone https://github.com/mesonbuild/meson.git
 cd mesa
-git checkout mesa-20.0.6
+git checkout mesa-20.1.0
 mkdir build
 cd build
-# python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=lima,panfrost,nouveau,tegra,vc4,v3d,freedreno,virgl,kmsro,swrast -Dlibunwind=false -Dplatforms=drm,x11,wayland,surfaceless -Dglx=dri -Degl=true -Ddri3=true -Dglvnd=false -Dosmesa=gallium -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa-armv7l
-# python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=lima,panfrost,nouveau,tegra,vc4,v3d,freedreno,virgl,kmsro,swrast -Dlibunwind=false -Dplatforms=drm,x11,wayland,surfaceless -Dglx=dri -Degl=true -Ddri3=true -Dglvnd=false -Dosmesa=gallium -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa-aarch64
+# python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=lima,panfrost,nouveau,tegra,vc4,v3d,freedreno,virgl,kmsro,swrast -Dlibunwind=false -Dplatforms=drm,x11,wayland,surfaceless -Dglx=dri -Degl=true -Ddri3=true -Dglvnd=false -Dgles1=true -Dgles2=true -Dllvm=true -Dshared-glapi=true -Dosmesa=gallium -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa-armv7l
+# python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=lima,panfrost,nouveau,tegra,vc4,v3d,freedreno,virgl,kmsro,swrast -Dlibunwind=false -Dplatforms=drm,x11,wayland,surfaceless -Dglx=dri -Degl=true -Ddri3=true -Dglvnd=false -Dgles1=true -Dgles2=true -Dllvm=true -Dshared-glapi=true -Dosmesa=gallium -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa-aarch64
 ninja
 ninja install
 
