@@ -77,3 +77,8 @@ might be relevant too: https://gitlab.freedesktop.org/lima/mesa/issues/114
 and: https://gitlab.freedesktop.org/mesa/mesa/merge_requests/1904
 and: https://gitlab.freedesktop.org/lima/mesa/issues/82
 apt-get install xserver-xorg-hwe-18.04 might be required (not sure if this is stil lthe case?)
+
+# build optimizations - from https://freenode.irclog.whitequark.org/panfrost/2020-07-10#27470476
+"--buildtype=release" "-Doptimization=3" "-Ddebug=false" "-Db_ndebug=true" "-Dstrip=true" "-Dzstd=true"
+# add lto etc. - from https://freenode.irclog.whitequark.org/panfrost/2020-07-10#27470521
+-Db_lto=true -Dllvm=disabled
