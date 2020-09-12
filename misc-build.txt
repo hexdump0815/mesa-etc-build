@@ -17,16 +17,15 @@ export LD_LIBRARY_PATH=/opt/mesa-xyz/lib/abc
 ./kmscube -d -D /dev/dri/renderD129 -M rgba
 
 # build xorg server
-apt-get install libpixman-1-dev libxkbfile-dev libxfont-dev libgl1-mesa-dev libepoxy-dev libpciaccess-dev libudev-dev
+apt-get install libpixman-1-dev libxkbfile-dev libxfont-dev libgl1-mesa-dev libepoxy-dev libpciaccess-dev libudev-dev libxcb-xinput-dev libxcb-damage0-dev libegl1-mesa-dev ninja-build
 git clone https://gitlab.freedesktop.org/xorg/xserver
 # we need a newer meson than what comes with ubuntu 18.04 to build the xorg server
 git clone https://github.com/mesonbuild/meson.git
 cd xserver
 mkdir build
 cd build
-# maybe add -Dxkb_bin_dir=/usr/bin too?
-# python3 ../../meson/meson.py .. . --prefix=/opt/xserver-armv7l -Dglamor=true
-# python3 ../../meson/meson.py .. . --prefix=/opt/xserver-aarch64 -Dglamor=true
+# python3 ../../meson/meson.py .. . --prefix=/opt/xserver-armv7l --pkg-config-path=/opt/mesa-armv7l/lib/arm-linux-gnueabihf/pkgconfig:/usr/lib/pkgconfig -Dxorg=true -Dglamor=true -Dxkb_bin_dir=/usr/bin
+# python3 ../../meson/meson.py .. . --prefix=/opt/xserver-aarch64 --pkg-config-path=/opt/mesa-armv7l/lib/aarch64-linux-gnu/pkgconfig:/usr/lib/pkgconfig -Dxorg=true -Dglamor=true -Dxkb_bin_dir=/usr/bin
 # build
 ninja [-j4]
 # install
@@ -34,9 +33,19 @@ ninja install
 cd /opt/xserver-xyz
 ln -s /etc etc
 ln -s /var var
-# those two can maybe be avoided using -Dxkb_bin_dir=/usr/bin above
-cd bin
-ln -s /usr/bin/xkbcomp xkbcomp
+( cd lib/arm-linux-gnueabihf/xorg/modules/ ; ln -s /usr/lib/xorg/modules/input )
+# to use that Xorg instead of the default ubuntu one for instance for lightdm
+# mv /usr/lib/xorg/Xorg /usr/lib/xorg/Xorg.org
+# ln -s /opt/xserver-xyz/bin/Xorg /usr/lib/xorg/Xorg
+# apt-mark hold xserver-xorg-core-hwe-18.04
+# to make the keyboard working with this new xorg server on a nyanbig chromebook it had to do
+# cat /etc/X11/xorg.conf.d/01-modesetting.conf
+Section "InputClass"
+	Identifier	"keyboard catchall"
+	MatchDevicePath	"/dev/input/event5"
+	MatchIsKeyboard	"on"
+	Driver		"libinput"
+EndSection
 
 # build libdrm
 git clone https://gitlab.freedesktop.org/mesa/drm
