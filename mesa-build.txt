@@ -14,6 +14,8 @@ git clone git://anongit.freedesktop.org/mesa/mesa
 git clone https://github.com/mesonbuild/meson.git
 cd mesa
 git checkout mesa-20.1.6
+# hack to make opengl at least halfway working on a tegra k1
+patch -p1 < /compile/doc/mesa/tegra-hack.patch
 mkdir build
 cd build
 # python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=lima,panfrost,nouveau,tegra,vc4,v3d,freedreno,virgl,kmsro,swrast -Dlibunwind=false -Dplatforms=drm,x11,wayland,surfaceless -Dglx=dri -Degl=true -Ddri3=true -Dglvnd=false -Dgles1=true -Dgles2=true -Dllvm=true -Dshared-glapi=true -Dosmesa=gallium -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa-armv7l

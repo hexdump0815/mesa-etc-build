@@ -1,0 +1,15 @@
+diff --git a/src/gallium/drivers/nouveau/nvc0/nvc0_state_validate.c b/src/gallium/drivers/nouveau/nvc0/nvc0_state_validate.c
+index 48d81f197db..f9b7bd57b27 100644
+--- a/src/gallium/drivers/nouveau/nvc0/nvc0_state_validate.c
++++ b/src/gallium/drivers/nouveau/nvc0/nvc0_state_validate.c
+@@ -255,6 +255,10 @@ nvc0_validate_fb(struct nvc0_context *nvc0)
+ 
+          nvc0_resource_fence(res, NOUVEAU_BO_WR);
+ 
++         // hack to make opengl at least halfway working on a tegra k1
++         // see: https://gitlab.freedesktop.org/mesa/mesa/-/issues/3505#note_627006
++         fb->zsbuf=NULL;
++
+          assert(!fb->zsbuf);
+       }
+ 
