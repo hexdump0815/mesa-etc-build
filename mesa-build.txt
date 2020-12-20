@@ -66,6 +66,8 @@ export LP_NUM_THREADS=1
 # performance improvements for mesa llvmpipe
 export LP_PERF=no_mipmap,no_linear,no_mip_linear,no_tex,no_blend,no_depth,no_alphatest
 export MESA_NO_DITHER=1
+# run egl with x11 driver - good in combination with gl4es to run opengl via egl on x11
+export EGL_PLATFORM=x11
 
 # testing
 - /opt/xserver/bin/Xorg -noreset &
