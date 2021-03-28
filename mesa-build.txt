@@ -91,3 +91,13 @@ apt-get install xserver-xorg-hwe-18.04 might be required (not sure if this is st
 "--buildtype=release" "-Doptimization=3" "-Ddebug=false" "-Db_ndebug=true" "-Dstrip=true" "-Dzstd=true"
 # add lto etc. - from https://freenode.irclog.whitequark.org/panfrost/2020-07-10#27470521
 -Db_lto=true -Dllvm=disabled
+
+# how to run with another self built mesa without overwriting the orignal one
+# from: https://www.reddit.com/r/RetroPie/comments/egjqw2/how_to_manually_compile_newest_mesa_drivers_for/ff274t6?utm_source=share&utm_medium=web2x&context=3
+# add to /etc/environment
+LD_LIBRARY_PATH=/opt/mesa/lib/aarch64-linux-gnu/dri
+LIBGL_DRIVERS_PATH=/opt/mesa/lib/aarch64-linux-gnu/dri
+GBM_DRIVERS_PATH=/opt/mesa/lib/aarch64-linux-gnu/dri
+# create /etc/ld.so.conf.d/aaa-mesa.conf
+/opt/mesa/lib/aarch64-linux-gnu
+# run ldconfig, reboot
