@@ -1,5 +1,7 @@
 see: https://gitlab.freedesktop.org/mesa/mesa/-/issues/3467#note_839180
 
+it is a good idea to combine it with the "lima.sched_timeout_ms=1000" kernel cmdline option
+
 diff --git a/src/gallium/drivers/lima/lima_context.c b/src/gallium/drivers/lima/lima_context.c
 index 9538f9a24e7..5a334c9822e 100644
 --- a/src/gallium/drivers/lima/lima_context.c
