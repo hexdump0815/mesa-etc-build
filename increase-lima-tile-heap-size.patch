@@ -1,0 +1,15 @@
+see: https://gitlab.freedesktop.org/mesa/mesa/-/issues/3467#note_839180
+
+diff --git a/src/gallium/drivers/lima/lima_context.c b/src/gallium/drivers/lima/lima_context.c
+index 9538f9a24e7..5a334c9822e 100644
+--- a/src/gallium/drivers/lima/lima_context.c
++++ b/src/gallium/drivers/lima/lima_context.c
+@@ -247,7 +247,7 @@ lima_context_create(struct pipe_screen *pscreen, void *priv, unsigned flags)
+        * backup memory in kernel driver, and will allocate more when GP
+        * get out of memory interrupt. Max to 16M set here.
+        */
+-      ctx->gp_tile_heap_size = 0x1000000;
++      ctx->gp_tile_heap_size = 0x4000000;
+       heap_flags = LIMA_BO_FLAG_HEAP;
+    } else {
+       /* fix size buffer */

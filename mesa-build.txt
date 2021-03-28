@@ -13,14 +13,18 @@ git clone git://anongit.freedesktop.org/mesa/mesa
 # we need a newer meson than what comes with ubuntu 18.04 to build mesa
 git clone https://github.com/mesonbuild/meson.git
 cd mesa
-git checkout mesa-20.3.3
-# hack to make opengl at least halfway working on a tegra k1
+# this version will no longer build on ubuntu 18.04 due to too old wayland client version etc.
+git checkout mesa-21.0.1
+# lima: increase tile heap size
+patch -p1 < /compile/doc/mesa/increase-lima-tile-heap-size.patch
+# nouveau: hack to make opengl at least halfway working on a tegra k1
 patch -p1 < /compile/doc/mesa/tegra-hack.patch
 mkdir build
 cd build
-# python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=lima,panfrost,vc4,v3d,virgl,kmsro,swrast -Dlibunwind=false -Dplatforms=x11,wayland -Dglx=dri -Degl=true -Ddri3=true -Dglvnd=false -Dgles1=true -Dgles2=true -Dllvm=true -Dshared-glapi=true -Dosmesa=gallium -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa-armv7l
-# python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=nouveau,tegra,virgl,swrast -Dlibunwind=false -Dplatforms=x11,wayland -Dglx=dri -Degl=true -Ddri3=true -Dglvnd=false -Dgles1=true -Dgles2=true -Dllvm=true -Dshared-glapi=true -Dosmesa=gallium -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa-armv7l
-# python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=lima,panfrost,vc4,v3d,virgl,kmsro,swrast -Dlibunwind=false -Dplatforms=x11,wayland -Dglx=dri -Degl=true -Ddri3=true -Dglvnd=false -Dgles1=true -Dgles2=true -Dllvm=true -Dshared-glapi=true -Dosmesa=gallium -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa-aarch64
+# lima, panfrost, vc4, v3d
+# python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=lima,panfrost,vc4,v3d,virgl,kmsro,swrast -Dlibunwind=disabled -Dplatforms=x11,wayland -Dglx=dri -Degl=enabled -Ddri3=enabled -Dglvnd=false -Dgles1=enabled -Dgles2=enabled -Dllvm=enabled -Dshared-glapi=enabled -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa
+# nouveau, tegra - needs at least ubuntu 20.04 to build due to newer libdrm
+# python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=nouveau,tegra,virgl,swrast -Dlibunwind=disabled -Dplatforms=x11,wayland -Dglx=dri -Degl=enabled -Ddri3=enabled -Dglvnd=false -Dgles1=enabled -Dgles2=enabled -Dllvm=enabled -Dshared-glapi=enabled -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa-armv7l
 ninja -j 4
 ninja install
 
