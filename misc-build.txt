@@ -12,7 +12,7 @@ git clone https://github.com/yuq/kmscube
 apt-get install autoconf automake libgbm-dev libegl1-mesa-dev libgles2-mesa-dev libpng-dev
 ./autogen.sh 
 make
-export LD_LIBRARY_PATH=/opt/mesa-xyz/lib/abc
+export LD_LIBRARY_PATH=/opt/mesa/lib/abc
 ./kmscube -d -D /dev/dri/renderD129
 ./kmscube -d -D /dev/dri/renderD129 -M rgba
 
@@ -24,25 +24,45 @@ git clone https://github.com/mesonbuild/meson.git
 cd xserver
 mkdir build
 cd build
-# python3 ../../meson/meson.py .. . --prefix=/opt/xserver-armv7l --pkg-config-path=/opt/mesa-armv7l/lib/arm-linux-gnueabihf/pkgconfig:/usr/lib/pkgconfig -Dxorg=true -Dglamor=true -Dxkb_bin_dir=/usr/bin
-# python3 ../../meson/meson.py .. . --prefix=/opt/xserver-aarch64 --pkg-config-path=/opt/mesa-armv7l/lib/aarch64-linux-gnu/pkgconfig:/usr/lib/pkgconfig -Dxorg=true -Dglamor=true -Dxkb_bin_dir=/usr/bin
+# python3 ../../meson/meson.py .. . --prefix=/opt/xserver --pkg-config-path=/opt/mesa/lib/arm-linux-gnueabihf/pkgconfig:/usr/lib/pkgconfig -Dxorg=true -Dglamor=true -Dxkb_bin_dir=/usr/bin
+# python3 ../../meson/meson.py .. . --prefix=/opt/xserver --pkg-config-path=/opt/mesa/lib/aarch64-linux-gnu/pkgconfig:/usr/lib/pkgconfig -Dxorg=true -Dglamor=true -Dxkb_bin_dir=/usr/bin
 # build
 ninja [-j4]
 # install
 ninja install
-cd /opt/xserver-xyz
+cd /opt/xserver
 ln -s /etc etc
 ln -s /var var
-( cd lib/arm-linux-gnueabihf/xorg/modules/ ; ln -s /usr/lib/xorg/modules/input )
+( cd lib/arm-linux-gnueabihf/xorg/modules/input ; for i in /usr/lib/xorg/modules/input/* ; do ln -s $i ; done )
+( cd lib/aarch64-linux-gnu/xorg/modules/input ; for i in /usr/lib/xorg/modules/input/* ; do ln -s $i ; done )
 # to use that Xorg instead of the default ubuntu one for instance for lightdm
 # mv /usr/lib/xorg/Xorg /usr/lib/xorg/Xorg.org
-# ln -s /opt/xserver-xyz/bin/Xorg /usr/lib/xorg/Xorg
-# apt-mark hold xserver-xorg-core-hwe-18.04
+# ln -s /opt/xserver/bin/Xorg /usr/lib/xorg/Xorg
+# apt-mark hold xserver-xorg-core
 # to make the keyboard working with this new xorg server on a nyanbig chromebook it had to do
+# check with "cat /sys/class/input/event*/device/name" which event number is the proper one below for the kbd
+# for chromebooks it will be cros_ec, otherwise something which sounds like a keyboard
+# for usb devices matching can be done on usb id
 # cat /etc/X11/xorg.conf.d/01-modesetting.conf
 Section "InputClass"
-	Identifier	"keyboard catchall"
-	MatchDevicePath	"/dev/input/event5"
+	Identifier	"chromebook kbd"
+	MatchDevicePath	"/dev/input/event1"
+	MatchIsKeyboard	"on"
+	Driver		"libinput"
+EndSection
+
+Section "InputClass"
+	Identifier	"chromebook usb mouse"
+	MatchDevicePath	"/dev/input/event*"
+	MatchUSBID	"046d:c05a"
+	MatchIsPointer	"on"
+	Driver		"libinput"
+EndSection
+
+Section "InputClass"
+	Identifier	"chromebook usb kbd"
+	MatchDevicePath	"/dev/input/event*"
+	MatchUSBID	"258a:0001"
 	MatchIsKeyboard	"on"
 	Driver		"libinput"
 EndSection
@@ -54,8 +74,7 @@ git clone https://github.com/mesonbuild/meson.git
 cd drm/
 mkdir build
 cd build
-# python3 ../../meson/meson.py .. . -Dnouveau=true -Dfreedreno=true -Dtegra=true -Detnaviv=true -Dexynos=true -Dintel=false -Dradeon=false -Damdgpu=false -Dvmwgfx=false -Domap=false -Dlibkms=false --prefix=/opt/libdrm-armv7l
-# python3 ../../meson/meson.py .. . -Dnouveau=true -Dfreedreno=true -Dtegra=true -Detnaviv=true -Dexynos=true -Dintel=false -Dradeon=false -Damdgpu=false -Dvmwgfx=false -Domap=false -Dlibkms=false --prefix=/opt/libdrm-aarch64
+# python3 ../../meson/meson.py .. . -Dnouveau=true -Dfreedreno=true -Dtegra=true -Detnaviv=true -Dexynos=true -Dintel=false -Dradeon=false -Damdgpu=false -Dvmwgfx=false -Domap=false -Dlibkms=false --prefix=/opt/libdrm
 ninja -j4
 ninja install
 
@@ -63,7 +82,6 @@ ninja install
 git clone https://github.com/rockchip-linux/libdrm-rockchip.git
 cd libdrm-rockchip
 autoreconf -fvi
-# ./configure --enable-rockchip-experimental-api --disable-libkms --disable-intel --disable-radeon --disable-amdgpu --disable-nouveau --disable-vmwgfx --disable-freedreno --disable-vc4 --prefix=/opt/libdrm-rockchip-armv7l
-# ./configure --enable-rockchip-experimental-api --disable-libkms --disable-intel --disable-radeon --disable-amdgpu --disable-nouveau --disable-vmwgfx --disable-freedreno --disable-vc4 --prefix=/opt/libdrm-rockchip-aarch64
+# ./configure --enable-rockchip-experimental-api --disable-libkms --disable-intel --disable-radeon --disable-amdgpu --disable-nouveau --disable-vmwgfx --disable-freedreno --disable-vc4 --prefix=/opt/libdrm-rockchip
 make
 make install

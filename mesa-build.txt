@@ -24,7 +24,7 @@ cd build
 # lima, panfrost, vc4, v3d
 # python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=lima,panfrost,vc4,v3d,virgl,kmsro,swrast -Dlibunwind=disabled -Dplatforms=x11,wayland -Dglx=dri -Degl=enabled -Ddri3=enabled -Dglvnd=false -Dgles1=enabled -Dgles2=enabled -Dllvm=enabled -Dshared-glapi=enabled -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa
 # nouveau, tegra - needs at least ubuntu 20.04 to build due to newer libdrm
-# python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=nouveau,tegra,virgl,swrast -Dlibunwind=disabled -Dplatforms=x11,wayland -Dglx=dri -Degl=enabled -Ddri3=enabled -Dglvnd=false -Dgles1=enabled -Dgles2=enabled -Dllvm=enabled -Dshared-glapi=enabled -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa-armv7l
+# python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=nouveau,tegra,virgl,swrast -Dlibunwind=disabled -Dplatforms=x11,wayland -Dglx=dri -Degl=enabled -Ddri3=enabled -Dglvnd=false -Dgles1=enabled -Dgles2=enabled -Dllvm=enabled -Dshared-glapi=enabled -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa
 ninja -j 4
 ninja install
 
@@ -54,13 +54,13 @@ EndSection
 - RockChip: rockchip
 - Exynos: exynos
 
-# maybe interesting to point to the dri dir in /opt/mesa-xyz/lib/abc/dri
+# maybe interesting to point to the dri dir in /opt/mesa/lib/abc/dri
 from: https://www.mesa3d.org/envvars.html
 LIBGL_DRIVERS_PATH - colon-separated list of paths to search for DRI drivers
 
 # maybe create /etc/ld.so.conf.d/aaa-mesa.conf to find out own mesa libs first
-/opt/libdrm-xyz/lib/abc
-/opt/mesa-xyz/lib/abc
+/opt/libdrm/lib/abc
+/opt/mesa/lib/abc
 
 # useful mesa env variables:
 # use sw rendering even if hw rendering would be possible
@@ -77,7 +77,7 @@ export EGL_PLATFORM=x11
 # testing
 - /opt/xserver/bin/Xorg -noreset &
 - same user: export DISPLAY=:0
-- export LIBGL_DRIVERS_PATH=/opt/mesa-xyz/lib/abc/dri
+- export LIBGL_DRIVERS_PATH=/opt/mesa/lib/abc/dri
 - then start gl apps: glxgears, glmark2, ...
 
 # not sure if still relevant - old odroid u3 lima notes:
