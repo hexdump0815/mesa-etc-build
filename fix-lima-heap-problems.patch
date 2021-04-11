@@ -1,0 +1,96 @@
+see: https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/10121
+and: https://gitlab.freedesktop.org/mesa/mesa/-/issues/3467
+and: https://gitlab.freedesktop.org/mesa/mesa/-/issues/4469
+
+From b3b687548d8e39129f38d5589798d580888656b5 Mon Sep 17 00:00:00 2001
+From: Vasily Khoruzhick <anarsoul@gmail.com>
+Date: Wed, 7 Apr 2021 23:32:46 -0700
+Subject: [PATCH] lima: limit number of draws per job
+
+Otherwise we may hit tile heap size limit if an app issues too many
+draws per job.
+
+Signed-off-by: Vasily Khoruzhick <anarsoul@gmail.com>
+---
+ src/gallium/drivers/lima/lima_draw.c | 11 +++++++++++
+ src/gallium/drivers/lima/lima_job.c  |  5 +++--
+ src/gallium/drivers/lima/lima_job.h  |  4 ++++
+ 3 files changed, 18 insertions(+), 2 deletions(-)
+
+diff --git a/src/gallium/drivers/lima/lima_draw.c b/src/gallium/drivers/lima/lima_draw.c
+index b7799950d92..7aa6b722a8c 100644
+--- a/src/gallium/drivers/lima/lima_draw.c
++++ b/src/gallium/drivers/lima/lima_draw.c
+@@ -1178,6 +1178,17 @@ lima_draw_vbo(struct pipe_context *pctx,
+       lima_draw_vbo_indexed(pctx, info, &draws[0]);
+    else
+       lima_draw_vbo_count(pctx, info, &draws[0]);
++
++   job->draws++;
++   /* Flush job if we hit the limit of draws per job otherwise we may
++    * hit tile heap size limit */
++   if (job->draws > MAX_DRAWS_PER_JOB) {
++      unsigned resolve = job->resolve;
++      lima_do_job(job);
++      job = lima_job_get(ctx);
++      /* Subsequent job will need to resolve the same buffers */
++      lima_update_job_wb(ctx, resolve);
++   }
+ }
+ 
+ void
+diff --git a/src/gallium/drivers/lima/lima_job.c b/src/gallium/drivers/lima/lima_job.c
+index bd56d29a377..c5a4579ecc3 100644
+--- a/src/gallium/drivers/lima/lima_job.c
++++ b/src/gallium/drivers/lima/lima_job.c
+@@ -99,6 +99,7 @@ lima_job_create(struct lima_context *ctx)
+ 
+    s->damage_rect.minx = s->damage_rect.miny = 0xffff;
+    s->damage_rect.maxx = s->damage_rect.maxy = 0;
++   s->draws = 0;
+ 
+    s->clear.depth = 0x00ffffff;
+ 
+@@ -301,7 +302,7 @@ lima_job_get_damage(struct lima_job *job)
+ static bool
+ lima_fb_cbuf_needs_reload(struct lima_job *job)
+ {
+-   if (!(job->key.cbuf && (job->resolve & PIPE_CLEAR_COLOR0)))
++   if (!job->key.cbuf)
+       return false;
+ 
+    struct lima_surface *surf = lima_surface(job->key.cbuf);
+@@ -323,7 +324,7 @@ lima_fb_cbuf_needs_reload(struct lima_job *job)
+ static bool
+ lima_fb_zsbuf_needs_reload(struct lima_job *job)
+ {
+-   if (!(job->key.zsbuf && (job->resolve & (PIPE_CLEAR_DEPTH | PIPE_CLEAR_STENCIL))))
++   if (!job->key.zsbuf)
+       return false;
+ 
+    struct lima_surface *surf = lima_surface(job->key.zsbuf);
+diff --git a/src/gallium/drivers/lima/lima_job.h b/src/gallium/drivers/lima/lima_job.h
+index f9691236db5..a43b8be1c10 100644
+--- a/src/gallium/drivers/lima/lima_job.h
++++ b/src/gallium/drivers/lima/lima_job.h
+@@ -31,6 +31,8 @@
+ 
+ #include <pipe/p_state.h>
+ 
++#define MAX_DRAWS_PER_JOB 2500
++
+ struct lima_context;
+ struct lima_bo;
+ struct lima_dump;
+@@ -80,6 +82,8 @@ struct lima_job {
+ 
+    struct lima_job_fb_info fb;
+ 
++   int draws;
++
+    /* for dump command stream */
+    struct lima_dump *dump;
+ };
+-- 
+GitLab
+

@@ -15,8 +15,8 @@ git clone https://github.com/mesonbuild/meson.git
 cd mesa
 # this version will no longer build on ubuntu 18.04 due to too old wayland client version etc.
 git checkout mesa-21.0.1
-# lima: increase tile heap size
-patch -p1 < /compile/doc/mesa/increase-lima-tile-heap-size.patch
+# lima: fix the lima heap size exhaustion by limiting the number of draws per job
+patch -p1 < /compile/doc/mesa/fix-lima-heap-problems.patch
 # nouveau: hack to make opengl at least halfway working on a tegra k1
 patch -p1 < /compile/doc/mesa/tegra-hack.patch
 mkdir build
