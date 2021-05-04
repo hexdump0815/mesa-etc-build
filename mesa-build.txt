@@ -94,6 +94,14 @@ apt-get install xserver-xorg-hwe-18.04 might be required (not sure if this is st
 
 # how to run with another self built mesa without overwriting the orignal one
 # from: https://www.reddit.com/r/RetroPie/comments/egjqw2/how_to_manually_compile_newest_mesa_drivers_for/ff274t6?utm_source=share&utm_medium=web2x&context=3
+## armv7l
+# add to /etc/environment
+LD_LIBRARY_PATH=/opt/mesa/lib/arm-linux-gnueabihf/dri
+LIBGL_DRIVERS_PATH=/opt/mesa/lib/arm-linux-gnueabihf/dri
+GBM_DRIVERS_PATH=/opt/mesa/lib/arm-linux-gnueabihf/dri
+# create /etc/ld.so.conf.d/aaa-mesa.conf
+/opt/mesa/lib/arm-linux-gnueabihf
+## aarch64
 # add to /etc/environment
 LD_LIBRARY_PATH=/opt/mesa/lib/aarch64-linux-gnu/dri
 LIBGL_DRIVERS_PATH=/opt/mesa/lib/aarch64-linux-gnu/dri
