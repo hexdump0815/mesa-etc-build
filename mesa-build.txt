@@ -14,17 +14,16 @@ git clone git://anongit.freedesktop.org/mesa/mesa
 git clone https://github.com/mesonbuild/meson.git
 cd mesa
 # this version will no longer build on ubuntu 18.04 due to too old wayland client version etc.
-git checkout mesa-21.0.1
+git checkout mesa-21.1.0
 # lima: fix the lima heap size exhaustion by limiting the number of draws per job
-patch -p1 < /compile/doc/mesa/fix-lima-heap-problems.patch
+# no longer needed since mesa 21.1.0 as this patch has been merged
+#patch -p1 < /compile/doc/mesa/fix-lima-heap-problems.patch
 # nouveau: hack to make opengl at least halfway working on a tegra k1
 patch -p1 < /compile/doc/mesa/tegra-hack.patch
 mkdir build
 cd build
-# lima, panfrost, vc4, v3d
-# python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=lima,panfrost,vc4,v3d,virgl,kmsro,swrast -Dlibunwind=disabled -Dplatforms=x11,wayland -Dglx=dri -Degl=enabled -Ddri3=enabled -Dglvnd=false -Dgles1=enabled -Dgles2=enabled -Dllvm=enabled -Dshared-glapi=enabled -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa
-# nouveau, tegra - needs at least ubuntu 20.04 to build due to newer libdrm
-# python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=nouveau,tegra,virgl,swrast -Dlibunwind=disabled -Dplatforms=x11,wayland -Dglx=dri -Degl=enabled -Ddri3=enabled -Dglvnd=false -Dgles1=enabled -Dgles2=enabled -Dllvm=enabled -Dshared-glapi=enabled -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa
+# all relevant arm drivers on ubuntu 20.04: lima, panfrost, vc4, v3d, nouveau, tegra, freedreno
+python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=freedreno,nouveau,tegra,lima,panfrost,vc4,v3d,virgl,kmsro,swrast -Dlibunwind=disabled -Dplatforms=x11,wayland -Dglx=dri -Degl=enabled -Ddri3=enabled -Dglvnd=false -Dgles1=enabled -Dgles2=enabled -Dllvm=enabled -Dshared-glapi=enabled -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa
 ninja -j 4
 ninja install
 
