@@ -17,9 +17,9 @@ export LD_LIBRARY_PATH=/opt/mesa/lib/abc
 ./kmscube -d -D /dev/dri/renderD129 -M rgba
 
 # build xorg server
-apt-get install libpixman-1-dev libxkbfile-dev libxfont-dev libgl1-mesa-dev libepoxy-dev libpciaccess-dev libudev-dev libxcb-xinput-dev libxcb-damage0-dev libegl1-mesa-dev ninja-build xfonts-utils libssl-dev
+apt-get -y install libpixman-1-dev libxkbfile-dev libxfont-dev libgl1-mesa-dev libepoxy-dev libpciaccess-dev libudev-dev libxcb-xinput-dev libxcb-damage0-dev libegl1-mesa-dev ninja-build xfonts-utils libssl-dev
 # this is for the input driver symlink hack later ...
-apt-get install xserver-xorg-input-multitouch xserver-xorg-input-wacom xserver-xorg-input-xwiimote xserver-xorg-input-all xserver-xorg-input-aiptek xserver-xorg-input-elographics xserver-xorg-input-evdev xserver-xorg-input-evdev-dev xserver-xorg-input-joystick xserver-xorg-input-joystick-dev xserver-xorg-input-kbd xserver-xorg-input-libinput xserver-xorg-input-libinput-dev xserver-xorg-input-mouse xserver-xorg-input-mutouch xserver-xorg-input-synaptics xserver-xorg-input-synaptics-dev
+apt-get -y install xserver-xorg-input-multitouch xserver-xorg-input-wacom xserver-xorg-input-xwiimote xserver-xorg-input-all xserver-xorg-input-aiptek xserver-xorg-input-elographics xserver-xorg-input-evdev xserver-xorg-input-evdev-dev xserver-xorg-input-joystick xserver-xorg-input-joystick-dev xserver-xorg-input-kbd xserver-xorg-input-libinput xserver-xorg-input-libinput-dev xserver-xorg-input-mouse xserver-xorg-input-mutouch xserver-xorg-input-synaptics xserver-xorg-input-synaptics-dev
 git clone https://gitlab.freedesktop.org/xorg/xserver.git
 # we need a newer meson than what comes with ubuntu 18.04 to build the xorg server
 git clone https://github.com/mesonbuild/meson.git
