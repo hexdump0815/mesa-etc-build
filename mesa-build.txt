@@ -14,15 +14,17 @@ git clone https://gitlab.freedesktop.org/mesa/mesa.git
 git clone https://github.com/mesonbuild/meson.git
 cd mesa
 # this version will no longer build on ubuntu 18.04 due to too old wayland client version etc.
-git checkout mesa-21.1.0
+git checkout mesa-21.3.0
 # lima: fix the lima heap size exhaustion by limiting the number of draws per job
 # no longer needed since mesa 21.1.0 as this patch has been merged
 #patch -p1 < /compile/doc/mesa/fix-lima-heap-problems.patch
-# nouveau: hack to make opengl at least halfway working on a tegra k1
+# nouveau: hack to make opengl at least halfway working on a tegra k1 with an older xorg server
 patch -p1 < /compile/doc/mesa/tegra-hack.patch
 mkdir build
 cd build
 # all relevant arm drivers on ubuntu 20.04: lima, panfrost, vc4, v3d, nouveau, tegra, freedreno
+# for debian bullseye simply use "meson" instead of "python3 ../../meson/meson.py"
+# as the default one is new enough - otherwise it might give trouble due to version mismatches
 python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=freedreno,nouveau,tegra,lima,panfrost,vc4,v3d,virgl,kmsro,swrast -Dlibunwind=disabled -Dplatforms=x11,wayland -Dglx=dri -Degl=enabled -Ddri3=enabled -Dglvnd=false -Dgles1=enabled -Dgles2=enabled -Dllvm=enabled -Dshared-glapi=enabled -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa
 ninja -j 4
 ninja install
