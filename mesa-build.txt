@@ -19,6 +19,7 @@ git checkout mesa-21.3.0
 # no longer needed since mesa 21.1.0 as this patch has been merged
 #patch -p1 < /compile/doc/mesa/fix-lima-heap-problems.patch
 # nouveau: hack to make opengl at least halfway working on a tegra k1 with an older xorg server
+# only needed on armv7l
 patch -p1 < /compile/doc/mesa/tegra-hack.patch
 mkdir build
 cd build
