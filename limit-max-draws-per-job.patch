@@ -1,0 +1,21 @@
+i ran into a case where this was required to avoid:
+
+lima d00c0000.gpu: fail to save task state from Rack pid 2479: error task list is full
+lima d00c0000.gpu: gp task error int_state=0 status=aa
+
+this was reproducable when running vcvrack v2 on an amlogic s905w tv box with mesa 21.3.3
+
+diff --git a/src/gallium/drivers/lima/lima_job.h b/src/gallium/drivers/lima/lima_job.h
+index a43b8be1c10..79af26fa105 100644
+--- a/src/gallium/drivers/lima/lima_job.h
++++ b/src/gallium/drivers/lima/lima_job.h
+@@ -31,7 +31,8 @@
+ 
+ #include <pipe/p_state.h>
+ 
+-#define MAX_DRAWS_PER_JOB 2500
++// #define MAX_DRAWS_PER_JOB 2500
++#define MAX_DRAWS_PER_JOB 1000
+ 
+ struct lima_context;
+ struct lima_bo;

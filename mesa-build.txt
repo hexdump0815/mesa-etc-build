@@ -18,6 +18,8 @@ git checkout mesa-21.3.0
 # lima: fix the lima heap size exhaustion by limiting the number of draws per job
 # no longer needed since mesa 21.1.0 as this patch has been merged
 #patch -p1 < /compile/doc/mesa/fix-lima-heap-problems.patch
+# looks like there are still some cases where the number of draws needs to be limited further
+patch -p1 < /compile/doc/mesa/limit-max-draws-per-job.patch
 # nouveau: hack to make opengl at least halfway working on a tegra k1 with an older xorg server
 # only needed on armv7l
 patch -p1 < /compile/doc/mesa/tegra-hack.patch
