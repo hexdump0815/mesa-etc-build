@@ -115,10 +115,11 @@ GBM_DRIVERS_PATH=/opt/mesa/lib/aarch64-linux-gnu/dri:/usr/lib/aarch64-linux-gnu/
 # run ldconfig, reboot
 
 # new mesa build including libdrm and wayland-protocols via buildenvs
-# currently tested on aarch64 for mesa-22.1-rc on bullseye
+# currently tested on aarch64 for mesa-22.1.0 on bullseye
 # directories:
 # - /compile/doc/mesa-etc-build - the files in this dir
 # - /compile/doc/buildenvs - https://github.com/hexdump0815/buildenvs
+# - /opt/mesa - installation dir of the built mesa
 cd /compile/doc
 git clone https://github.com/hexdump0815/buildenvs
 cd buildenvs
@@ -138,7 +139,7 @@ cd drm
 git checkout libdrm-2.4.110
 mkdir build
 cd build
-python3 ../../meson/meson.py .. . -Dnouveau=true -Dfreedreno=true -Dtegra=true -Dexynos=true -Detnaviv=false -Dintel=false -Dradeon=false -Damdgpu=false -Dvmwgfx=false -Domap=false --prefix=/opt/mesanew
+python3 ../../meson/meson.py .. . -Dnouveau=true -Dfreedreno=true -Dtegra=true -Dexynos=true -Detnaviv=false -Dintel=false -Dradeon=false -Damdgpu=false -Dvmwgfx=false -Domap=false --prefix=/opt/mesa
 ninja -j 4
 ninja install
 # wayland-protocols
@@ -148,16 +149,16 @@ cd wayland-protocols
 git checkout 1.25
 mkdir build
 cd build
-python3 ../../meson/meson.py .. . --buildtype=release --prefix=/opt/mesanew
+python3 ../../meson/meson.py .. . --buildtype=release --prefix=/opt/mesa
 ninja -j 4
 ninja install
 # mesa
 cd /compile/source
 git clone https://gitlab.freedesktop.org/mesa/mesa
 cd mesa
-git checkout mesa-22.1.0-rc5
+git checkout mesa-22.1.0
 mkdir build
 cd build
-python3 ../../meson/meson.py .. . --pkg-config-path=/opt/mesanew/lib/aarch64-linux-gnu/pkgconfig,/opt/mesanew/share/pkgconfig -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=freedreno,lima,panfrost,vc4,v3d,nouveau,tegra,virgl,kmsro,swrast -Dlibunwind=disabled -Dplatforms=x11,wayland -Dglx=dri -Degl=enabled -Ddri3=enabled -Dglvnd=false -Dgles1=enabled -Dgles2=enabled -Dllvm=enabled -Dshared-glapi=enabled -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesanew
+python3 ../../meson/meson.py .. . --pkg-config-path=/opt/mesa/lib/aarch64-linux-gnu/pkgconfig,/opt/mesa/share/pkgconfig -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=freedreno,lima,panfrost,vc4,v3d,nouveau,tegra,virgl,kmsro,swrast -Dlibunwind=disabled -Dplatforms=x11,wayland -Dglx=dri -Degl=enabled -Ddri3=enabled -Dglvnd=false -Dgles1=enabled -Dgles2=enabled -Dllvm=enabled -Dshared-glapi=enabled -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa
 ninja -j 4
 ninja install
