@@ -6,8 +6,15 @@
 cd /compile/doc
 git clone https://github.com/hexdump0815/buildenvs
 cd buildenvs
+# bullseye
 ./docker-buildenv-bullseye.sh
 ./buildenv-bullseye.sh
+# focal
+#./docker-buildenv-focal.sh
+#./buildenv-focal.sh
+# jammy
+#./docker-buildenv-jammy.sh
+#./buildenv-jammy.sh
 # the next steps are done inside of the buildenv docker container in its shell
 apt-get -y install python3-dev x11proto-gl-dev libx11-dev libxext-dev libxdamage-dev libxfixes-dev libx11-xcb-dev libxcb-glx0-dev libxxf86vm-dev libxcb-dri2-0-dev libxcb-xfixes0-dev libxcb-dri3-dev libxcb-present-dev libxcb-sync-dev libxshmfence-dev libxrandr-dev llvm-dev meson python3-mako python3-setuptools libwayland-dev wayland-protocols libwayland-egl-backend-dev pkg-config build-essential zlib1g-dev git bison flex libxcb-shm0-dev
 # arch dependent /opt/mesa/lib dir - only the proper one should be set
