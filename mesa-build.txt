@@ -51,8 +51,9 @@ cd /compile/source
 git clone https://gitlab.freedesktop.org/mesa/mesa
 cd mesa
 git checkout mesa-22.1.0
-# some patches recommended for armv7l
-#patch -p1 < /compile/doc/mesa-etc-build/limit-max-draws-per-job.patch
+# in some situations it still seems to be required to increase one paramater for lima
+patch -p1 < /compile/doc/mesa-etc-build/limit-max-draws-per-job.patch
+# this patch is recommended for armv7l to make tegra work at least somewhat with old xorg
 #patch -p1 < /compile/doc/mesa-etc-build/tegra-hack.patch
 mkdir build
 cd build
