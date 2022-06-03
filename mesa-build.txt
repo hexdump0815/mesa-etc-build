@@ -16,6 +16,8 @@ cd buildenvs
 #./docker-buildenv-jammy.sh
 #./buildenv-jammy.sh
 # the next steps are done inside of the buildenv docker container in its shell
+# maybe cleanup from an older build?
+#rm -rf /opt/mesa
 apt-get -y install python3-dev x11proto-gl-dev libx11-dev libxext-dev libxdamage-dev libxfixes-dev libx11-xcb-dev libxcb-glx0-dev libxxf86vm-dev libxcb-dri2-0-dev libxcb-xfixes0-dev libxcb-dri3-dev libxcb-present-dev libxcb-sync-dev libxshmfence-dev libxrandr-dev llvm-dev meson python3-mako python3-setuptools libwayland-dev wayland-protocols libwayland-egl-backend-dev pkg-config build-essential zlib1g-dev git bison flex libxcb-shm0-dev
 # arch dependent /opt/mesa/lib dir - only the proper one should be set
 # i686
@@ -35,7 +37,7 @@ cd meson
 git checkout 0.62.1
 # libdrm
 cd /compile/source
-git clone https://gitlab.freedesktop.org/mesa/drm
+git clone https://gitlab.freedesktop.org/mesa/drm.git
 cd drm
 git checkout libdrm-2.4.110
 mkdir build
@@ -45,7 +47,7 @@ ninja -j 4
 ninja install
 # wayland-protocols
 cd /compile/source
-git clone https://gitlab.freedesktop.org/wayland/wayland-protocols
+git clone https://gitlab.freedesktop.org/wayland/wayland-protocols.git
 cd wayland-protocols
 git checkout 1.25
 mkdir build
@@ -55,9 +57,12 @@ ninja -j 4
 ninja install
 # mesa
 cd /compile/source
-git clone https://gitlab.freedesktop.org/mesa/mesa
+git clone https://gitlab.freedesktop.org/mesa/mesa.git
 cd mesa
-git checkout mesa-22.1.0
+# older version still working for the nyan chromebook with tegra/nouveau
+# and newer xorg server - later versions do not work with this hardware
+#git checkout mesa-21.0.3
+git checkout mesa-22.1.1
 # in some situations it still seems to be required to increase one paramater for lima
 patch -p1 < /compile/doc/mesa-etc-build/limit-max-draws-per-job.patch
 # this patch is recommended for armv7l to make tegra work at least somewhat with old xorg
@@ -68,124 +73,5 @@ python3 ../../meson/meson.py .. . --pkg-config-path=/opt/mesa/lib/${ARCH_DEP_LIB
 ninja -j 4
 ninja install
 mkdir -p /compile/result/mesa-etc-build
-# the filename uploaded to the releases is opt-mesa-22.1.0-bullseye-aarch64.tar.gz etc.
+# the filename uploaded to the releases is opt-mesa-22.1.1-bullseye-aarch64.tar.gz etc.
 tar czf /compile/result/mesa-etc-build/opt-mesa.tar.gz /opt/mesa
-
-
-# older note below ...
-
-# VERY IMPORTANT: some of the mesa drivers need libllvm package to be installed - otherwise one gets
-#                 the hard to debug glamor error in the xorg log "couldn't get display device" or
-#                 "MESA-LOADER: failed to open vc4" while the vc4_dri.so is where it is being searched
-#                 for - ldd on the vc4_dri.so showed then, that it depended on libLLVM-6.0.so.1 which
-#                 was not installed ... other things to keep in mind: access to /dev/dri/* should
-#                 work for gpu users ("video" group for users in ubuntu) and often the xserver needs
-#                 to run with root privs ("xserver-xorg-legacy" and /etc/X11/Xwrapper.config in
-#                 ubuntu - put "allowed_users=anybody" and "needs_root_rights=yes" if needed
-
-# required pacakges to build (not guaranteed to be complete)
-apt-get -y install x11proto-gl-dev libdrm-dev libx11-dev libxext-dev libxdamage-dev libxfixes-dev libx11-xcb-dev libxcb-glx0-dev libxxf86vm-dev libxcb-dri2-0-dev libxcb-xfixes0-dev libxcb-dri3-dev libxcb-present-dev libxcb-sync-dev libxshmfence-dev libxrandr-dev llvm-dev meson python3-mako python3-setuptools libwayland-dev wayland-protocols libwayland-egl-backend-dev pkg-config build-essential zlib1g-dev git bison flex libxcb-shm0-dev
-git clone https://gitlab.freedesktop.org/mesa/mesa.git
-# we need a newer meson than what comes with ubuntu 18.04 to build mesa
-git clone https://github.com/mesonbuild/meson.git
-cd mesa
-# this version will no longer build on ubuntu 18.04 due to too old wayland client version etc.
-git checkout mesa-21.3.0
-# lima: fix the lima heap size exhaustion by limiting the number of draws per job
-# no longer needed since mesa 21.1.0 as this patch has been merged
-#patch -p1 < /compile/doc/mesa-etc-build/fix-lima-heap-problems.patch
-# looks like there are still some cases where the number of draws needs to be limited further
-patch -p1 < /compile/doc/mesa-etc-build/limit-max-draws-per-job.patch
-# nouveau: hack to make opengl at least halfway working on a tegra k1 with an older xorg server
-# only needed on armv7l
-patch -p1 < /compile/doc/mesa-etc-build/tegra-hack.patch
-mkdir build
-cd build
-# all relevant arm drivers on ubuntu 20.04: lima, panfrost, vc4, v3d, nouveau, tegra, freedreno
-# for debian bullseye simply use "meson" instead of "python3 ../../meson/meson.py"
-# as the default one is new enough - otherwise it might give trouble due to version mismatches
-python3 ../../meson/meson.py .. . -Ddri-drivers= -Dvulkan-drivers= -Dgallium-drivers=freedreno,nouveau,tegra,lima,panfrost,vc4,v3d,virgl,kmsro,swrast -Dlibunwind=disabled -Dplatforms=x11,wayland -Dglx=dri -Degl=enabled -Ddri3=enabled -Dglvnd=false -Dgles1=enabled -Dgles2=enabled -Dllvm=enabled -Dshared-glapi=enabled -Dbackend=ninja -Dbuildtype=debugoptimized --prefix=/opt/mesa
-ninja -j 4
-ninja install
-
-# for panfrost and lima kernel config is required and a proper gpu node in the dtb
-CONFIG_PANFROST=m
-CONFIG_LIMA=m
-
-# in panfrost some devices still need to be whitelisted in panfrost_create_screen
-# https://gitlab.freedesktop.org/mesa/mesa/-/blob/master/src/gallium/drivers/panfrost/pan_screen.c
-
-# xorg.conf for panfrost and lima (from: https://gitlab.freedesktop.org/lima/web/blob/master/README.md)
-Section "ServerFlags"
-        Option "AutoAddGPU" "off"
-        Option "Debug" "dmabuf_capable"
-EndSection
-
-Section "OutputClass"
-        Identifier "lima"
-        MatchDriver "<display DRM driver>"
-        Driver "modesetting"
-        Option "PrimaryGPU" "true"
-EndSection
-
-# <display DRM driver>:
-- Amlogic: meson
-- Allwinner: sun4i-drm
-- RockChip: rockchip
-- Exynos: exynos
-
-# maybe interesting to point to the dri dir in /opt/mesa/lib/abc/dri
-from: https://www.mesa3d.org/envvars.html
-LIBGL_DRIVERS_PATH - colon-separated list of paths to search for DRI drivers
-
-# maybe create /etc/ld.so.conf.d/aaa-mesa.conf to find out own mesa libs first
-/opt/libdrm/lib/abc
-/opt/mesa/lib/abc
-
-# useful mesa env variables:
-# use sw rendering even if hw rendering would be possible
-export LIBGL_ALWAYS_SOFTWARE=1
-# limit number of threads (i.e. cpu cores used) for sw rendering
-export LP_NUM_THREADS=1
-# from: https://redmine.replicant.us/projects/replicant/wiki/GraphicsResearch
-# performance improvements for mesa llvmpipe
-export LP_PERF=no_mipmap,no_linear,no_mip_linear,no_tex,no_blend,no_depth,no_alphatest
-export MESA_NO_DITHER=1
-# run egl with x11 driver - good in combination with gl4es to run opengl via egl on x11
-export EGL_PLATFORM=x11
-
-# testing
-- /opt/xserver/bin/Xorg -noreset &
-- same user: export DISPLAY=:0
-- export LIBGL_DRIVERS_PATH=/opt/mesa/lib/abc/dri
-- then start gl apps: glxgears, glmark2, ...
-
-# not sure if still relevant - old odroid u3 lima notes:
-use convert-int-to-float.patch - see: https://gitlab.freedesktop.org/lima/mesa/issues/56#note_98690
-might be relevant too: https://gitlab.freedesktop.org/lima/mesa/issues/114
-and: https://gitlab.freedesktop.org/mesa/mesa/merge_requests/1904
-and: https://gitlab.freedesktop.org/lima/mesa/issues/82
-apt-get install xserver-xorg-hwe-18.04 might be required (not sure if this is stil lthe case?)
-
-# build optimizations - from https://freenode.irclog.whitequark.org/panfrost/2020-07-10#27470476
-"--buildtype=release" "-Doptimization=3" "-Ddebug=false" "-Db_ndebug=true" "-Dstrip=true" "-Dzstd=true"
-# add lto etc. - from https://freenode.irclog.whitequark.org/panfrost/2020-07-10#27470521
--Db_lto=true -Dllvm=disabled
-
-# how to run with another self built mesa without overwriting the orignal one
-# from: https://www.reddit.com/r/RetroPie/comments/egjqw2/how_to_manually_compile_newest_mesa_drivers_for/ff274t6?utm_source=share&utm_medium=web2x&context=3
-## armv7l
-# add to /etc/environment
-LD_LIBRARY_PATH=/opt/mesa/lib/arm-linux-gnueabihf/dri:/usr/lib/arm-linux-gnueabihf/dri
-LIBGL_DRIVERS_PATH=/opt/mesa/lib/arm-linux-gnueabihf/dri:/usr/lib/arm-linux-gnueabihf/dri
-GBM_DRIVERS_PATH=/opt/mesa/lib/arm-linux-gnueabihf/dri:/usr/lib/arm-linux-gnueabihf/dri
-# create /etc/ld.so.conf.d/aaa-mesa.conf
-/opt/mesa/lib/arm-linux-gnueabihf
-## aarch64
-# add to /etc/environment
-LD_LIBRARY_PATH=/opt/mesa/lib/aarch64-linux-gnu/dri:/usr/lib/aarch64-linux-gnu/dri
-LIBGL_DRIVERS_PATH=/opt/mesa/lib/aarch64-linux-gnu/dri:/usr/lib/aarch64-linux-gnu/dri
-GBM_DRIVERS_PATH=/opt/mesa/lib/aarch64-linux-gnu/dri:/usr/lib/aarch64-linux-gnu/dri
-# create /etc/ld.so.conf.d/aaa-mesa.conf
-/opt/mesa/lib/aarch64-linux-gnu
-# run ldconfig, reboot
