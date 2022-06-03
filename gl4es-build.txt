@@ -1,0 +1,41 @@
+# gl4es build via buildenvs
+# directories:
+# - /compile/doc/mesa-etc-build - the files in this dir
+# - /compile/doc/buildenvs - https://github.com/hexdump0815/buildenvs
+# - /opt/gl4es - installation dir of the built mesa
+cd /compile/doc
+git clone https://github.com/hexdump0815/buildenvs
+cd buildenvs
+# bullseye
+./docker-buildenv-bullseye.sh
+./buildenv-bullseye.sh
+# focal
+#./docker-buildenv-focal.sh
+#./buildenv-focal.sh
+# jammy
+#./docker-buildenv-jammy.sh
+#./buildenv-jammy.sh
+
+# the next steps are done inside of the buildenv docker container in its shell
+# maybe cleanup from an older build?
+#rm -rf /opt/gl4es
+apt-get -y install libx11-dev
+cd /compile/source
+# cleanup potential old builds
+rm -rf gl4es
+git clone https://github.com/ptitSeb/gl4es.git
+cd gl4es
+# the commit it was compiled last time with
+git checkout 36a5cd54e7ff6cad15ce6d1924c63bf5cf64c1f1
+mkdir build
+cd build
+# armv7l
+cmake .. -DODROID=1 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DDEFAULT_ES=2 -DCMAKE_C_FLAGS="-march=armv7 -mtune=cortex-a9 -mfpu=neon -mno-unaligned-access"
+# aarch64
+cmake .. -DODROID=1 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DDEFAULT_ES=2 -DCMAKE_C_FLAGS="-march=armv8-a -mtune=cortex-a53"
+make -j 4
+mkdir -p /opt/gl4es
+cp ../lib/libGL.so.1 /opt/gl4es
+mkdir -p /compile/result/mesa-etc-build
+# the filename uploaded to the releases is opt-gl4es-bullseye-aarch64.tar.gz etc.
+tar czf /compile/result/mesa-etc-build/opt-gl4es.tar.gz /opt/gl4es
