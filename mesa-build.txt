@@ -9,6 +9,9 @@ cd buildenvs
 # bullseye
 ./docker-buildenv-bullseye.sh
 ./buildenv-bullseye.sh
+# bookworm
+#./docker-buildenv-bookworm.sh
+#./buildenv-bookworm.sh
 # focal
 #./docker-buildenv-focal.sh
 #./buildenv-focal.sh
@@ -34,22 +37,22 @@ rm -rf meson drm wayland-protocols mesa
 # we need a newer meson than what comes with ubuntu 18.04 to build libdrm
 git clone https://github.com/mesonbuild/meson.git
 cd meson
-git checkout 0.62.1
+git checkout 0.63.3
 # libdrm
 cd /compile/source
 git clone https://gitlab.freedesktop.org/mesa/drm.git
 cd drm
-git checkout libdrm-2.4.110
+git checkout libdrm-2.4.113
 mkdir build
 cd build
-python3 ../../meson/meson.py .. . -Dnouveau=true -Dfreedreno=true -Dtegra=true -Dexynos=true -Detnaviv=false -Dintel=false -Dradeon=false -Damdgpu=false -Dvmwgfx=false -Domap=false --prefix=/opt/mesa
+python3 ../../meson/meson.py .. . -Dnouveau=enabled -Dfreedreno=enabled -Dtegra=enabled -Dexynos=enabled -Detnaviv=disabled -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dvmwgfx=disabled -Domap=disabled --prefix=/opt/mesa
 ninja -j 4
 ninja install
 # wayland-protocols
 cd /compile/source
 git clone https://gitlab.freedesktop.org/wayland/wayland-protocols.git
 cd wayland-protocols
-git checkout 1.25
+git checkout 1.27
 mkdir build
 cd build
 python3 ../../meson/meson.py .. . --buildtype=release --prefix=/opt/mesa
@@ -62,7 +65,7 @@ cd mesa
 # older version still working for the nyan chromebook with tegra/nouveau
 # and newer xorg server - later versions do not work with this hardware
 #git checkout mesa-21.0.3
-git checkout mesa-22.1.1
+git checkout mesa-22.2.2
 # in some situations it still seems to be required to increase one paramater for lima
 patch -p1 < /compile/doc/mesa-etc-build/limit-max-draws-per-job.patch
 # this patch is recommended for armv7l to make tegra work at least somewhat with old xorg
