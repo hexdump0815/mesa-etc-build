@@ -1,0 +1,92 @@
+# new xserver build via buildenvs
+# directories:
+# - /compile/doc/mesa-etc-build - the files in this dir
+# - /compile/doc/buildenvs - https://github.com/hexdump0815/buildenvs
+# - /opt/xserver - installation dir of the built mesa
+cd /compile/doc
+git clone https://github.com/hexdump0815/buildenvs
+cd buildenvs
+# bullseye
+./docker-buildenv-bullseye.sh
+./buildenv-bullseye.sh
+# focal
+#./docker-buildenv-focal.sh
+#./buildenv-focal.sh
+# jammy
+#./docker-buildenv-jammy.sh
+#./buildenv-jammy.sh
+# the next steps are done inside of the buildenv docker container in its shell
+# maybe cleanup from an older build?
+#rm -rf /opt/xserver
+# required to build the xorg server
+apt-get -y install libpixman-1-dev libxkbfile-dev libxfont-dev libgl1-mesa-dev libepoxy-dev libpciaccess-dev libudev-dev libxcb-xinput-dev libxcb-damage0-dev libegl1-mesa-dev ninja-build xfonts-utils libssl-dev
+# this seems to be required on top for 21.1.99
+apt-get -y install pkg-config libxcvt-dev mesa-common-dev libgbm-dev
+# this is required for the input module symlinking done later
+apt-get -y install xserver-xorg-input-multitouch xserver-xorg-input-wacom xserver-xorg-input-xwiimote xserver-xorg-input-all xserver-xorg-input-evdev xserver-xorg-input-evdev-dev xserver-xorg-input-joystick xserver-xorg-input-joystick-dev xserver-xorg-input-kbd xserver-xorg-input-libinput xserver-xorg-input-libinput-dev xserver-xorg-input-mouse xserver-xorg-input-synaptics xserver-xorg-input-synaptics-dev
+# for debian the following packages are possible/required as well
+apt-get -y install xserver-xorg-input-aiptek xserver-xorg-input-elographics xserver-xorg-input-mutouch
+# for ubuntu jammy the following packages seem to be required as well
+apt-get -y install libpixman-1-dev libxfont2 libxfont-dev libudev-dev libmd-dev libepoxy-dev
+# to get rid of meson xproto libxcvt and dri errors and to get an xorg with glamor
+# arch dependent /opt/mesa/lib dir - only the proper one should be set
+# i686
+ARCH_DEP_LIB_DIR=i386-linux-gnu
+# x86_64
+ARCH_DEP_LIB_DIR=x86_64-linux-gnu
+# armv7l
+ARCH_DEP_LIB_DIR=arm-linux-gnueabihf
+# aarch64
+ARCH_DEP_LIB_DIR=aarch64-linux-gnu
+cd /compile/source
+# cleanup potential old builds
+rm -rf meson xserver
+# we need a newer meson than what comes with ubuntu 18.04 to build libdrm
+git clone https://github.com/mesonbuild/meson.git
+cd meson
+# for nyan working version (20.99.1) use:
+#git checkout 0.56
+git checkout 0.62.1
+cd /compile/source/
+git clone https://gitlab.freedesktop.org/xorg/xserver.git
+cd xserver 
+# for nyan working version (20.99.1) use
+#git checkout 7e142cb2a848acb6af986fa91d254d4c23963b24
+# for that build also the following patch seems to be required
+#patch -p1 < /compile/doc/mesa-etc-build/xserver-meson-20.99.1.patch
+mkdir build
+cd build/
+python3 ../../meson/meson.py .. . --prefix=/opt/xserver --pkg-config-path=/opt/mesa/lib/${ARCH_DEP_LIB_DIR}/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig -Dxorg=true -Dglamor=true -Dxkb_bin_dir=/usr/bin
+ninja -j 4
+ninja install
+cd /opt/xserver
+ln -s /etc etc
+ln -s /var var
+# symlink the existing input modules into the new xorg tree to not having to build all now too
+# this gives one error to simply ignore: ln: failed to create symbolic link './inputtest_drv.so': File exists
+( cd lib/${ARCH_DEP_LIB_DIR}/xorg/modules/input ; for i in /usr/lib/xorg/modules/input/* ; do ln -s $i ; done )
+# create a backup copy of the input modules to have them around in case the symlinked ones get too new
+mkdir -p /opt/xserver/input-module-backup
+cp /usr/lib/xorg/modules/input/* /opt/xserver/input-module-backup
+mkdir -p /compile/result/mesa-etc-build
+# the filename uploaded to the releases is opt-xserver-21.1.99.1-bullseye-aarch64.tar.gz etc.
+tar czf /compile/result/mesa-etc-build/opt-xserver.tar.gz /opt/xserver
+
+# this did not seem to help, but for reference to install newer xproto:
+git clone https://gitlab.freedesktop.org/xorg/proto/xorgproto
+cd xorgproto/
+git checkout xorgproto-2022.2
+mkdir build
+cd build
+python3 ../../meson/meson.py .. . --buildtype=release --prefix=/opt/mesa
+ninja
+ninja install
+
+# problems seen with the 21.1.99.1 on the nyan chromebook:
+- xorg.log: (WW) modeset(0): DRI2: glamor lacks support for pixmap import/export
+- glxgears/glmark2: dri2_allocate_textures: Assertion `drawable->textures[statt]' failed.
+  - coming from mesa: src/gallium/frontends/dri/dri2.c
+- maybe only easy solution right now is to build the old xserver for newer os (bookworm etc.) as well
+  - compiling of old version gives errors: error: array subscript 'union _SourcePict[0]' is partly outside array bounds of 'unsigned char[24]' [-Werror=array-bounds]
+    - workaround hack: xserver-meson-20.99.1.patch
+  - using the old bullseye xserver 20.99.1 build with old input drivers it seems to even work with mesa 22.2.2 :)
